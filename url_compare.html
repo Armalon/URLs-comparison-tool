@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>URLs HTTP GET comparison tool v 0.3</title>
+        <meta name="description" content="Compare two URLs with their GET parameters. This tool takes GET parameter from first URL and tries to find same name parameter in second URL and then compares their values">
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5&appId=224666067589179";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));</script>
+
+        <div class="container">
+            <blockquote style="padding: 6px 15px; margin-bottom: 10px">
+                <h1 style="margin-top:0">Compare two URLs by GET parameters online</h1>
+                Find difference between parameters of two URLs
+            </blockquote>
+            <div class="well">
+                <div class="row">
+                    <div class="col-md-6">
+                        This tool allows you to find difference between two URLs parameter by parameter. <br />
+                        It finds same GET parameters by name in URLs and compare their values. <br /> <br />
+
+                        If they differ -- then cell of second URL marked with <span style="background: yellow">yellow</span>, <br />
+                        if values equal -- <span style="background: white">white</span>, <br />
+                        if parameter doesn't exist in second URL -- <span style="background: red">red</span>, <br />
+                        in opposite if parameter exists only in second URL -- cell of second URL will be marked with <span style="background: green">green</span>. <br /> <br />
+
+                        So the order of two URLs matters, you'll have different visual result if you swap URLs, <br />
+                        but of course it won't change logical meaning.
+                    </div>
+                    <div class="col-md-6">
+                        Arrays are supported, but with their own way. <br />
+                        Tool only shows if current value of array-parameter exists (or doesn't) in second URL. <br />
+                        Keys of compared arrays are shown but are not taken into account while comparing. <br />
+                        Only one-dimensional arrays are supported for the present, multi-dimensional arrays will be considered as one-dimensional<br />
+                        In additional a part of URL like this: '&abc=1&abc=33&abc=543&abc=99' will be considered as an array abc with values [1, 33, 543, 99]
+                        <br /> <br />
+
+                        Some parameter values can be changed, corresponding URL will be changed too and whole table will be drawn from scratch.
+                    </div>
+                </div>
+            </div>
+
+            <form>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                URL 1
+                            </div>
+                            <div class="panel-body">
+<!--                            http://www.tez-tour.com/tariffsearch/getResult?skd[][]=111&ddd[d]=1&ddd[s]=3&asd[]=3&vasya=123&pop[]=123&kolya=456&sveta=765&abc=333&asd=123&=-->
+                                <textarea id="url1" placeholder="Enter first url here, for example: http://www.tez-tour.com/tariffsearch/getResult?a[]=111&b[c]=1&d=4&d=5" rows="3" style="width: 100%"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                URL 2
+                            </div>
+                            <div class="panel-body">
+<!--                            http://www.tez-tour.com/tariffsearch/getResult?skd[]=222&ddd[]=1&asd=13&petya=321&pop[]=321&kolya=456&sveta=876&abc[]=333&-->
+                                <textarea id="url2" placeholder="Enter second url here" rows="3" style="width: 100%"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="button" id="compare" value="Compare"  />
+            </form>
+
+            <!--
+            http://www.tez-tour.com/tariffsearch/getResult?ddd[]=1&ddd[]=3
+            http://www.tez-tour.com/tariffsearch/getResult?ddd[][]=1&ddd[][]=3&ddd[1][]=4
+            http://www.tez-tour.com/tariffsearch/getResult?callback=jsonp1430040603462&_=1430040609843&priceMin=0&priceMax=150000&currency=5561&nightsMin=6&nightsMax=14&hotelClassId=269506&accommodationId=2&rAndBId=15350&tourType=1&locale=ru&cityId=345&countryId=1104&after=26.04.2015&before=03.05.2015&hotelInStop=false&specialInStop=false&version=2&tourId=1285&tourId=12689&tourId=12706&tourId=143330&tourId=4141298&tourId=9004247&tourId=4433&tourId=5736&tourId=139343&tourId=4434&tourId=12691&tourId=12705&tourId=149827&hotelClassBetter=true&rAndBBetter=true&noTicketsTo=false&noTicketsFrom=false&searchTypeId=3&recommendedFlag=false&salePrivateFlag=false&onlineConfirmFlag=false
+            -->
+            <!--
+            http://www.tez-tour.com/tariffsearch/getResult?ddd=2
+            http://www.tez-tour.com/tariffsearch/getResult?ddd=13
+            http://www.tez-tour.com/tariffsearch/getResult?callback=jsonp1430040603470&_=1430042171388&priceMin=0&priceMax=150000&currency=5561&nightsMin=6&nightsMax=14&hotelClassId=2567&accommodationId=2&rAndBId=15350&tourType=1&locale=ru&cityId=345&countryId=5732&after=26.04.2015&before=03.05.2015&hotelInStop=false&specialInStop=false&version=2&tourId=416623&tourId=26313&tourId=14355&tourId=111466&tourId=9001254&tourId=14353&tourId=1285&tourId=54766&tourId=5734&tourId=5735&tourId=14351&hotelClassBetter=true&rAndBBetter=true&noTicketsTo=false&noTicketsFrom=false&searchTypeId=3&recommendedFlag=false&salePrivateFlag=false&onlineConfirmFlag=false
+            -->
+
+            <br />
+            <br />
+            <div id="output">
+                <table class="table table-striped table-bordered" width="100%" id="output_table">
+    <!--                <tr>
+                        <th>
+                            base
+                        </th>
+                        <td colspan="2">
+                        </td>
+                        <td colspan="2">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            1
+                        </th>
+                        <td>
+                            priceMin
+                        </td>
+                        <td>
+                            0
+                        </td>
+                        <td>
+                            priceMin
+                        </td>
+                        <td bgcolor="yellow">
+                            1000
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            2
+                        </th>
+                        <td>
+                            priceMax
+                        </td>
+                        <td>
+                            0
+                        </td>
+                        <td bgcolor="red" colspan="2">
+                            priceMax
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            3
+                        </th>
+                        <td colspan="2">
+                        </td>
+                        <td bgcolor="green">
+                            hotelClassBetter
+                        </td>
+                        <td>
+                            true
+                        </td>
+                    </tr>-->
+                </table>
+
+                <h2>Legend</h2>
+                <span style="background: red">red</span> -- parameter of the first URL is missed in the second URL
+                <br /><br />
+                <span style="background: yellow">yellow</span> -- parameter value differs from the same parameter value of the second url
+                <br /><br />
+                <span style="background: green">green</span> -- parameter of the second URL is missed in the first URL
+
+                <br />
+                <br />
+                <br />
+            </div>
+
+            <h3>Add comments if you like my tool and found bug or you have some ideas</h3>
+            <div class="fb-comments" data-href="http://aleksey-yaremenko.ru/tools/url_compare/url_compare.html" data-numposts="5"></div>
+        </div>
+
+        <style>
+            #output_table > tbody > tr > th,
+            #output_table > tbody > tr > td
+            {
+                padding: 3px;
+            }
+            #output_table > tbody > tr > td div
+            {
+                margin-bottom: 4px;
+            }
+            #output_table > tbody > tr > td div:last-child
+            {
+                margin-bottom: 0;
+            }
+            #output_table > tbody > tr > td input[type=text]
+            {
+                width: 90%;
+            }
+            div.well,
+            div.panel
+            {
+                margin-bottom: 10px;
+            }
+            div.panel-body
+            {
+                padding: 10px;
+            }
+            div.panel-heading
+            {
+                padding: 5px 12px;
+            }
+        </style>
+
+        <script>
+            function parseUrl(url)
+            {
+                var parser = document.createElement('a');
+                parser.href = url;
+
+                return parser;
+
+                parser.protocol; // => "http:"
+                parser.hostname; // => "example.com"
+                parser.port;     // => "3000"
+                parser.pathname; // => "/pathname/"
+                parser.search;   // => "?search=test"
+                parser.hash;     // => "#hash"
+                parser.host;     // => "example.com:3000"
+            }
+
+            function parseUrlParameters(query, urlNum) {
+                var parsedUrl = {
+                    flat: [], // исходные данные, без обработки, каждый элемент хранит исходный ключ, порядковый номер и значение, а так же ссылку на слитый результат
+                    merged: {} // слитые параметры, сливает параметры вида abs[]=1, abs[]=2 в массив с ключем abc и массивом со значениями 1 и 2. Хранит ссылку на исходные данные
+                    // Плохо работает с многомерыми массивами
+                };
+
+                if (query)
+                {
+                    // TODO: "&" symbol may be part of a value, not a separator
+                    query.split("&").forEach(function(part) {
+                        var key = '';
+                        var value = null;
+                        
+                        var equalPosition = part.indexOf('=');
+                        
+                        if (equalPosition > -1)
+                        {
+                            key = part.substring(0, equalPosition);
+                            value = part.substring(equalPosition + 1);
+                        }
+                        
+                        var i = parsedUrl.flat.length;
+                        parsedUrl.flat[i] = { originalKey: key, index: i, urlNum: urlNum };
+
+                        mergeParameterWithResult(key, value, parsedUrl.merged, parsedUrl.flat[i], key);
+                    });
+                }
+                return parsedUrl;
+            }
+
+            function mergeParameterWithResult(key, value, result, flat, mergedParamKey)
+            {
+                var match;
+                if (match = key.match(/^([^\[]+)(\[.*\])/)) // t[][] = 123 --> recursive('[][]', 123, result[t])
+                {
+                    var paramKey = match[1];
+
+                    if (typeof result[paramKey] === 'undefined')
+                    {
+                        result[paramKey] = [];
+                    }
+
+                    mergeParameterWithResult(match[2], value, result[paramKey], flat, paramKey);
+                }
+                else if (match = key.match(/^\[([^\]]*)\](.*)/))
+                // [2][] = 123 --> recursive('[]', 123, result[2])
+                // [1] = 123 --> result[1] = 123
+                {
+                    var index = match[1] ? match[1] : result.length;
+
+                    if (typeof result[index] === 'undefined')
+                    {
+                        result[index] = [];
+                    }
+
+                    if (match[2] && 0) // amp zero makes two or more dimensional arrays be considered as one dimensional
+                    {
+                        mergeParameterWithResult(match[2], value, result[index], flat, mergedParamKey);
+                    }
+                    else
+                    {
+                        result[index] = { value: value != null ? decodeURIComponent(value) : value, flat: flat, paramKey: mergedParamKey, key: index };
+                        flat.merged = result[index];
+                    }
+                }
+                else
+                {
+                    if (typeof result[key] === 'undefined') // t = 123 --> result[t] = 123
+                    {
+                        result[key] = { value: value != null ? decodeURIComponent(value) : value, flat: flat, paramKey: mergedParamKey, key: key };
+                        flat.merged = result[key];
+                    }
+                    else // t = 123, t = 345 --> result[t][0] = 123, result[t][1] = 345
+                    {
+                        if (!(result[key] instanceof Array))
+                        {
+                            // replace regular value with an array having this value as a first element
+                            result[key] = [ result[key] ];
+                        }
+
+                        var i = result[key].length;
+                        result[key][i] = { value: value != null ? decodeURIComponent(value) : value, flat: flat, paramKey: mergedParamKey, key: i };
+                        flat.merged = result[key][i];
+                    }
+                }
+            }
+
+            function getArrayValues(a)
+            {
+                var result = [];
+                for (var i in a)
+                {
+                    result.push(a[i].value);
+                }
+                return result;
+            }
+
+            function arrayOutput(arrayParam)
+            {
+                var result = '<br />';
+                for (var arrayParamKey in arrayParam)
+                {
+                    result += '<div><input type="text" value="' + arrayParam[arrayParamKey].value + '" id="param_input_' + arrayParam[arrayParamKey].flat.urlNum + '_' + arrayParam[arrayParamKey].flat.index + '" data-url-num="' + arrayParam[arrayParamKey].flat.urlNum + '" data-flat-index="' + arrayParam[arrayParamKey].flat.index + '" />' +
+                                '<a href="#" class="remove" style="float: right; margin-right: 15px;" title="remove">X</a></div>';
+                }
+
+                return result;
+            }
+            
+            function restOutput(value, flat_index, url_num)
+            {
+                var valueOutput;
+                valueOutput = '<input type="text" value="' + (value != null ? value : 'undefined value') + '" ' + (value == null ? 'readonly' : '') + ' id="param_input_' + url_num + '_' + flat_index + '" data-url-num="' + url_num + '" data-flat-index="' + flat_index + '" />';
+                return valueOutput +
+                       '<a href="#" class="remove" style="float: right; margin-right: 15px;" title="remove">X</a>';
+            }
+
+            // not used anymore
+            function getParsedUrlSearch(parsedUrl)
+            {
+                var search = [];
+                for (var i in parsedUrl.flat)
+                {
+                    search.push(parsedUrl.flat[i].originalKey + '=' + parsedUrl.flat[i].merged.value);
+                }
+
+                return search;
+            }
+
+            function generateCompareTable(parsedUrls)
+            {
+                var trs = '<tr><th>base</th><td colspan="2">' + parsedUrls[1].hostname + parsedUrls[1].pathname + '</td><td colspan="2">' + parsedUrls[2].hostname + parsedUrls[2].pathname + '</td></tr>';
+                var cnt = 1;
+
+                for (var paramName in parsedUrls[1].urlParams.merged)
+                {
+                    if (!(parsedUrls[1].urlParams.merged[paramName] instanceof Array) || !(parsedUrls[2].urlParams.merged[paramName] instanceof Array))
+                    {
+                        // one of first and second Url params is not array
+                        // corresponsive param of second Url may not exist
+                        // compare them as single values
+                        var tds = '<th>' + cnt + '</th>';
+
+                        tds += '<td>' + paramName + '</td>';
+                        tds += '<td>' +
+                                    (parsedUrls[1].urlParams.merged[paramName] instanceof Array
+                                        ? 'Array(' + getArrayValues(parsedUrls[1].urlParams.merged[paramName]) + ')'
+                                           + arrayOutput(parsedUrls[1].urlParams.merged[paramName])
+                                        : restOutput(parsedUrls[1].urlParams.merged[paramName].value, parsedUrls[1].urlParams.merged[paramName].flat.index, 1)
+                                    )
+                                '</td>';
+
+                        if (typeof parsedUrls[2].urlParams.merged[paramName] != 'undefined') // exists in second Url
+                        {
+                            tds += '<td>' + paramName + '</td>';
+                            // param values may be equal or not
+                            tds += '<td' + (parsedUrls[1].urlParams.merged[paramName].value != parsedUrls[2].urlParams.merged[paramName].value ? ' bgcolor="yellow"' : '') + '>' +
+                                            (parsedUrls[2].urlParams.merged[paramName] instanceof Array
+                                                ? 'Array(' + getArrayValues(parsedUrls[2].urlParams.merged[paramName]) + ')'
+                                                    + arrayOutput(parsedUrls[2].urlParams.merged[paramName])
+                                                : restOutput(parsedUrls[2].urlParams.merged[paramName].value, parsedUrls[2].urlParams.merged[paramName].flat.index, 2)
+                                            ) +
+                                    '</td>';
+                        }
+                        else // not exists in second Url
+                        {
+                            tds += '<td bgcolor="red" colspan="2">' + paramName + '</td>';
+                        }
+
+                        trs += '<tr>' + tds + '</tr>';
+                        cnt++;
+                    }
+                    else
+                    {
+                        // Both params are arrays
+                        for (var arrayParamKey in parsedUrls[1].urlParams.merged[paramName])
+                        {
+                            var tds = '<th>' + cnt + '</th>';
+
+                            tds += '<td>' + paramName + '[' + arrayParamKey + ']' + '</td>';
+
+                            tds += '<td>' +
+                                        restOutput(parsedUrls[1].urlParams.merged[paramName][arrayParamKey].value, parsedUrls[1].urlParams.merged[paramName][arrayParamKey].flat.index, 1) +
+                                    '</td>';
+
+                            // TODO: array key can be not numeric or being set specially, in this case we have to compare key by key and not value by value
+
+                            if (parsedUrls[2].urlParams.merged[paramName] instanceof Array)
+                            {
+                                var indexOf = indexOfValue(parsedUrls[1].urlParams.merged[paramName][arrayParamKey], parsedUrls[2].urlParams.merged[paramName]);
+                                if (indexOf != -1)
+                                {
+                                    tds += '<td>' + paramName + '[' + indexOf + ']' + '</td>';
+                                    tds += '<td>' +
+                                                restOutput(parsedUrls[2].urlParams.merged[paramName][indexOf].value, parsedUrls[2].urlParams.merged[paramName][indexOf].flat.index, 2) +
+                                            '</td>';
+                                    // array param of the first Url has same value in param array of the second Url
+                                }
+                                else
+                                {
+                                    tds += '<td bgcolor="red" colspan="2">' + paramName + '[]' + '</td>';
+                                    // there is no equal values of the same array parameter in both Urls
+                                }
+                            }
+                            else
+                            {
+                                // param of second Url is not an array
+                                tds += '<td>' + paramName + '</td><td bgcolor="yellow">' +
+                                            restOutput(parsedUrls[2].urlParams.merged[paramName], parsedUrls[2].urlParams.merged[paramName].flat.index, 2) +
+                                        '</td>';
+                            }
+
+                            trs += '<tr>' + tds + '</tr>';
+
+                            cnt++;
+                        }
+                    }
+                }
+
+                for (var paramName in parsedUrls[2].urlParams.merged)
+                {
+                    if (!(parsedUrls[2].urlParams.merged[paramName] instanceof Array))
+                    {
+                        // show plain regular param in green if it's not set in first Url
+                        if (typeof parsedUrls[1].urlParams.merged[paramName] == 'undefined' /* || url1Params[paramName] instanceof Array */)
+                        {
+                            var tds = '<th>' + cnt + '</th>';
+                            tds += '<td colspan="2"></td>';
+                            tds += '<td bgcolor="green">' + paramName + '</td>';
+                            tds += '<td>' +
+                                        restOutput(parsedUrls[2].urlParams.merged[paramName].value, parsedUrls[2].urlParams.merged[paramName].flat.index, 2) +
+                                    '</td>';
+
+                            trs += '<tr>' + tds + '</tr>';
+                            cnt++;
+                        }
+                    }
+                    else // second URL param is array
+                    {
+                        for (var arrayParamKey in parsedUrls[2].urlParams.merged[paramName])
+                        {
+                            if (parsedUrls[1].urlParams.merged[paramName] instanceof Array)
+                            {
+                                // show param array value of sceond Url in green if there is no equal value in first array
+                                var indexOf = indexOfValue(parsedUrls[2].urlParams.merged[paramName][arrayParamKey], parsedUrls[1].urlParams.merged[paramName]);
+                                if (indexOf == -1)
+                                {
+                                    var tds = '<th>' + cnt + '</th>';
+                                    tds += '<td colspan="2"></td>';
+                                    tds += '<td bgcolor="green">' + paramName + '[' + arrayParamKey + ']' + '</td>';
+                                    tds += '<td>' +
+                                                restOutput(parsedUrls[2].urlParams.merged[paramName][arrayParamKey].value, parsedUrls[2].urlParams.merged[paramName][arrayParamKey].flat.index, 2) +
+                                            '</td>';
+
+                                    trs += '<tr>' + tds + '</tr>';
+                                    cnt++;
+                                }
+                            }
+                            else if (typeof parsedUrls[1].urlParams.merged[paramName] == 'undefined')
+                            {
+                                var tds = '<th>' + cnt + '</th>';
+                                tds += '<td colspan="2"></td>';
+                                tds += '<td bgcolor="green">' + paramName + '[' + arrayParamKey + ']' + '</td>';
+                                tds += '<td>' + 'Array(' + getArrayValues(parsedUrls[2].urlParams.merged[paramName]) + ')' + arrayOutput(parsedUrls[2].urlParams.merged[paramName]) + '</td>';
+
+                                trs += '<tr>' + tds + '</tr>';
+                                cnt++;
+                            }
+                        }
+                    }
+                }
+
+                return trs;
+            }
+
+            function indexOfValue(needle, haystack)
+            {
+                var result = -1;
+                for (var i in haystack)
+                {
+                    if (haystack[i].value == needle.value)
+                    {
+                        return i;
+                    }
+                }
+                return result;
+            }
+
+            function refreshCompareTable()
+            {
+                var $output_table = $('#output_table');
+
+                $output_table.find('tbody').remove();
+                var trs = generateCompareTable(parsedUrls);
+                $output_table.append(trs);
+
+                setEventsOnInputFieldsOfCompareTable();
+            }
+
+            function setEventsOnInputFieldsOfCompareTable()
+            {
+                var $output_table = $('#output_table');
+                $output_table.find('input[type=text]').change(function(that){
+                    var target = that.target;
+                    var urlNum = target.dataset.urlNum;
+
+                    parsedUrls[urlNum].urlParams.flat[target.dataset.flatIndex].merged.value = target.value;
+
+                    rebuildUrl(parsedUrls[urlNum]);
+                    refreshUrlInput(parsedUrls, urlNum);
+                    refreshCompareTable();
+                });
+
+                $output_table.find('a.remove').click(function(that){
+                    var target = that.target;
+                    var inputSibling = $(target).siblings('input[type=text]')[0];
+
+                    var urlNum = inputSibling.dataset.urlNum;
+                    var flatIndex = inputSibling.dataset.flatIndex;
+
+                    // удаляем merged значение
+                    var mergedParamKey = parsedUrls[urlNum].urlParams.flat[flatIndex].merged.paramKey;
+
+                    if (typeof parsedUrls[urlNum].urlParams.merged[mergedParamKey].key != 'undefined')
+                    {
+                        // не массив, удаляется целиком
+                        delete parsedUrls[urlNum].urlParams.merged[mergedParamKey];
+                    }
+                    else
+                    {
+                        // массив, удаляется только один из элементов
+                        var mergedKey = parsedUrls[urlNum].urlParams.flat[flatIndex].merged.key;
+
+                        delete parsedUrls[urlNum].urlParams.merged[mergedParamKey][mergedKey];
+
+                        // проверяем не пуст ли итоговый массив
+                        var cnt = 0;
+                        for (var i in parsedUrls[urlNum].urlParams.merged[mergedParamKey])
+                        {
+                            cnt++;
+                        }
+
+                        // если пуст, подчищаем тоже
+                        if (!cnt)
+                        {
+                            delete parsedUrls[urlNum].urlParams.merged[mergedParamKey];
+                        }
+                    }
+
+                    // удаляем flat значение
+                    delete parsedUrls[urlNum].urlParams.flat[flatIndex];
+
+                    console.log(parsedUrls[1].urlParams);
+                    console.log(parsedUrls[2].urlParams);
+
+                    rebuildUrl(parsedUrls[urlNum]);
+                    refreshUrlInput(parsedUrls, urlNum);
+                    refreshCompareTable();
+
+                    return false;
+                });
+            }
+
+            function refreshUrlInput(parsedUrls, urlNum)
+            {
+                $('#url' + urlNum).val(parsedUrls[urlNum]);
+            }
+
+            function processUrlsCompare()
+            {
+                url1 = $('#url1').val();
+                url2 = $('#url2').val();
+
+                if (!$.trim(url1) || !$.trim(url2))
+                {
+                    // TODO: show error message in notification center
+                    return false;
+                }
+
+                parsedUrls = [];
+
+                parsedUrls[1] = parseUrl(url1);
+                parsedUrls[2] = parseUrl(url2);
+
+                if (parsedUrls[1].hostname && parsedUrls[2].hostname)
+                {
+                    // TODO: compare by symbol base of these urls
+//                    $output_table.find('tr').eq(0).children('td').eq(0).html(parsedUrl1.hostname + parsedUrl1.pathname);
+//                    $output_table.find('tr').eq(0).children('td').eq(1).html(parsedUrl2.hostname + parsedUrl2.pathname);
+
+                    parsedUrls[1].urlParams = parseUrlParameters(parsedUrls[1].search.substr(1), 1);
+                    parsedUrls[2].urlParams = parseUrlParameters(parsedUrls[2].search.substr(1), 2);
+
+                    console.log(parsedUrls[1].urlParams);
+                    console.log(parsedUrls[2].urlParams);
+
+                    refreshCompareTable();
+                }
+            }
+
+            $('#compare').click(function(){
+                processUrlsCompare();
+
+                return false;
+            });
+
+            function rebuildUrl(parsedUrl)
+            {
+                parsedUrl.search = mergeUrlParams(parsedUrl.urlParams);
+
+                return parsedUrl;
+            }
+
+            function mergeUrlParams(urlParams)
+            {
+                var paramAndValues = [];
+
+                if (typeof urlParams.flat != 'undefined')
+                {
+                    for (var i in urlParams.flat)
+                    {
+                        if (urlParams.flat[i].merged.value != null)
+                        {
+                            paramAndValues.push(urlParams.flat[i].originalKey + '=' + encodeURIComponent(urlParams.flat[i].merged.value));
+                        }
+                        else
+                        {
+                            paramAndValues.push('');
+                        }
+                    }
+                }
+
+                return paramAndValues.join('&');
+            }
+        </script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-23609757-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+<!-- Yandex.Metrika counter --><script type="text/javascript"> (function (d, w, c) { (w[c] = w[c] || []).push(function() { try { w.yaCounter34787340 = new Ya.Metrika({ id:34787340, clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true, trackHash:true }); } catch(e) { } }); var n = d.getElementsByTagName("script")[0], s = d.createElement("script"), f = function () { n.parentNode.insertBefore(s, n); }; s.type = "text/javascript"; s.async = true; s.src = "https://mc.yandex.ru/metrika/watch.js"; if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); } })(document, window, "yandex_metrika_callbacks");</script><noscript><div><img src="https://mc.yandex.ru/watch/34787340" style="position:absolute; left:-9999px;" alt="" /></div></noscript><!-- /Yandex.Metrika counter -->
+
+    </body>
+</html>
